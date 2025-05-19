@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Countdown Clock</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <style>
+            body {
+                font-family: sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                background: #f5f5f5;
+                margin: 0;
+            }
+            h1 {
+                font-size: 2.5rem;
+            }
+            #countdown {
+                display: flex;
+                gap: 1rem;
+                font-size: 2.5rem;
+                font-weight: bold;
+            }
+            .unit {
+                text-align: center;
+            }
+            .number {
+                font-size: 3rem;
+            }
+            .label {
+                font-size: 0.8rem;
+                text-transform: uppercase;
+                color: #555;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Countdown to <div id="purpose" class="h1" style="display: inline">Freedom</div>:</h1>
+        <div id="countdown">
+            <div class="unit"><div id="days" class="number">00</div><div class="label">Days</div></div>
+            <div class="unit"><div id="hours" class="number">00</div><div class="label">Hours</div></div>
+            <div class="unit"><div id="minutes" class="number">00</div><div class="label">Minutes</div></div>
+            <div class="unit"><div id="seconds" class="number">00</div><div class="label">Seconds</div></div>
+        </div>
+
+        <script>
+            const DEFAULT_END_TIME = "2026-01-01";
+
+            function getPurpose() {
+                const params = new URLSearchParams(window.location.search);
+                const purposeParam = params.get('p');
+                if (!purposeParam) return null;
+
+                return purposeParam;
+            }
+
+            // Parse end time from query string (e.g., ?end=2025-12-31T23:59:59Z or ?end=1735689599000)
+            function getEndTime() {
+                const params = new URLSearchParams(window.location.search);
+                var endParam = params.get('end');
+                if (!endParam) {
+                    endParam = DEFAULT_END_TIME;
+                }
+
+                // Allow epoch milliseconds or ISO date strings
+                const asNumber = Number(endParam);
+                if (!isNaN(asNumber)) {
+                    return new Date(asNumber);
+                }
+
+                // Convert date string to local time
+                const inputDate = new Date(endParam);
+                if (isNaN(inputDate.getTime())) return null;
+
+                // Adjust to local time if input was interpreted as UTC
+                const localOffset = inputDate.getTimezoneOffset() * 60000;
+                return new Date(inputDate.getTime() + localOffset);
+            }
+
+            const purpose = getPurpose();
+            if (purpose != null) {
+                document.getElementById('purpose').textContent = purpose;
+            }
+            
+            const endTime = getEndTime();
+            if (endTime == null) {
+                document.getElementById('countdown').textContent = 'No valid "end" parameter provided.';
+            } else {
+                function updateCountdown() {
+                    const now = new Date();
+                    const diff = endTime - now;
+                    if (diff <= 0) {
+                        document.getElementById('countdown').textContent = 'Countdown complete!';
+                        clearInterval(interval);
+                        return;
+                    }
+
+                    const secondsTotal = Math.floor(diff / 1000);
+                    const days = Math.floor(secondsTotal / 86400);
+                    const hours = Math.floor((secondsTotal % 86400) / 3600);
+                    const minutes = Math.floor((secondsTotal % 3600) / 60);
+                    const seconds = secondsTotal % 60;
+
+                    document.getElementById('days').textContent = String(days).padStart(2, '0');
+                    document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+                    document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+                    document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+                }
+
+                updateCountdown();
+                const interval = setInterval(updateCountdown, 1000);
+            }
+        </script>
+    </body>
+</html>
