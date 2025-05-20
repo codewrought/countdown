@@ -15,5 +15,5 @@ Where p=[Some string to be displayed]
 Sets the display for the purpose of this countdown.
 Example: ?p=Ice%20Cream! would show "Countdown to Ice Cream!" in the page.
 
-Here's an example page, hosted, so you don't have to download the page:
+Here's the page hosted on a Github's web-server, so you don't have to download the page:
 https://codewrought.github.io/countdown/countdown.html?p=end%20of%202024-2025%20school%20year!&end=2025-05-30T15:20:00Z
