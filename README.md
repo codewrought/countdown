@@ -1,7 +1,9 @@
 # countdown
 Simple Javascript Countdown Clock.
 
-To use, just download the countdown.html file to your desktop and double-click on the file to open.
+To use, just download the countdown.html file to your desktop and double-click on the file to open. 
+
+This page was written with AI and modified slightly to accept some parameters and work with local (non UTC) time.
 
 Optional query string params:
 1. end
