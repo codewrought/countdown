@@ -1,6 +1,8 @@
 # countdown
 Simple Javascript Countdown Clock.
 
+To use, just download the countdown.html file to your desktop and double-click on the file to open.
+
 Optional query string params:
 1. end
 Where end=YYYY-MM-DDTHH:MM:SSZ or end=NNNNNNNNNNNNN (in miliseconds since January 01, 1970 UTC).
