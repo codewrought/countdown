@@ -49,6 +49,15 @@
         </div>
 
         <script>
+            // Set background and font color from query params
+            (function setColorsFromParams() {
+                const params = new URLSearchParams(window.location.search);
+                const bg = params.get('bg');
+                const fc = params.get('fc');
+                if (bg) document.body.style.background = bg;
+                if (fc) document.body.style.color = fc;
+            })();
+
             const DEFAULT_END_TIME = "2026-08-01";
 
             function getPurpose() {

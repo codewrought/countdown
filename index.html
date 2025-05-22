@@ -78,6 +78,14 @@
             <input type="text" id="message" maxlength="100" placeholder="Reason for countdown" />
         </label>
 
+        <label>Background color
+            <input type="color" id="bgcolor" value="#eef2f7" />
+        </label>
+
+        <label>Font color
+            <input type="color" id="fontcolor" value="#222222" />
+        </label>
+
         <button type="submit">Start Countdown</button>
     </form>
 
@@ -99,11 +107,19 @@
             }
 
             const msgVal = document.getElementById('message').value.trim();
+            const bgColor = document.getElementById('bgcolor').value;
+            const fontColor = document.getElementById('fontcolor').value;
 
             // Construct the URL to the existing countdown page
             let url = `countdown.html?end=${encodeURIComponent(endString)}`;
             if (msgVal) {
                 url += `&p=${encodeURIComponent(msgVal)}`;
+            }
+            if (bgColor) {
+                url += `&bg=${encodeURIComponent(bgColor)}`;
+            }
+            if (fontColor) {
+                url += `&fc=${encodeURIComponent(fontColor)}`;
             }
 
             // Redirect
