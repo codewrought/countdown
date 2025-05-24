@@ -40,7 +40,8 @@
 
         input[type="date"],
         input[type="time"],
-        input[type="text"] {
+        input[type="text"],
+        input[type="url"] {
             padding: 0.5rem;
             border: 1px solid #ccc;
             border-radius: 0.5rem;
@@ -86,10 +87,68 @@
             <input type="color" id="fontcolor" value="#222222" />
         </label>
 
+        <label>Image URL (optional)
+            <input type="url" id="bgimageurl" placeholder="https://example.com/image.jpg" style="margin-bottom:0.5rem;" />
+            <img id="bgimage-preview" style="display:none; margin-top:0.5rem; max-width:100%; max-height:80px; border-radius:0.5rem; border:1px solid #ccc;" />
+        </label>
+
         <button type="submit">Start Countdown</button>
     </form>
 
     <script>
+        // Helper functions for cookies
+        function setCookie(name, value, days = 365) {
+            const expires = new Date(Date.now() + days*24*60*60*1000).toUTCString();
+            document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
+        }
+        function getCookie(name) {
+            const match = document.cookie.match(new RegExp('(^| )' + encodeURIComponent(name) + '=([^;]+)'));
+            return match ? decodeURIComponent(match[2]) : null;
+        }
+
+        // Restore input values from cookies on page load
+        window.addEventListener('DOMContentLoaded', function () {
+            const fields = [
+                { id: 'date', type: 'value' },
+                { id: 'time', type: 'value' },
+                { id: 'message', type: 'value' },
+                { id: 'bgcolor', type: 'value' },
+                { id: 'fontcolor', type: 'value' },
+                { id: 'bgimageurl', type: 'value' }
+            ];
+            fields.forEach(field => {
+                const val = getCookie(field.id);
+                if (val !== null) {
+                    document.getElementById(field.id)[field.type] = val;
+                }
+            });
+
+            // Show preview if bgimageurl is present
+            const url = document.getElementById('bgimageurl').value;
+            const preview = document.getElementById('bgimage-preview');
+            if (url) {
+                preview.src = url;
+                preview.style.display = 'block';
+            }
+        });
+
+        // Save input values to cookies on change
+        ['date', 'time', 'message', 'bgcolor', 'fontcolor', 'bgimageurl'].forEach(id => {
+            document.getElementById(id).addEventListener('change', function (e) {
+                setCookie(id, e.target.value);
+                if (id === 'bgimageurl') {
+                    const preview = document.getElementById('bgimage-preview');
+                    if (e.target.value) {
+                        preview.src = e.target.value;
+                        preview.style.display = 'block';
+                    } else {
+                        preview.src = '';
+                        preview.style.display = 'none';
+                    }
+                }
+            });
+        });
+
         document.getElementById('createForm').addEventListener('submit', function (e) {
             e.preventDefault();
 
@@ -109,6 +168,7 @@
             const msgVal = document.getElementById('message').value.trim();
             const bgColor = document.getElementById('bgcolor').value;
             const fontColor = document.getElementById('fontcolor').value;
+            const bgImageUrl = document.getElementById('bgimageurl').value.trim();
 
             // Construct the URL to the existing countdown page
             let url = `countdown.html?end=${encodeURIComponent(endString)}`;
@@ -121,8 +181,10 @@
             if (fontColor) {
                 url += `&fc=${encodeURIComponent(fontColor)}`;
             }
+            if (bgImageUrl) {
+                url += `&bgimgurl=${encodeURIComponent(bgImageUrl)}`;
+            }
 
-            // Redirect
             window.location.href = url;
         });
     </script>

@@ -40,6 +40,7 @@
         </style>
     </head>
     <body>
+        <img id="bgimg-display" style="display:none; max-width:640px; max-height:320px; border-radius:0.75rem; margin-bottom:1.5rem;" alt="Selected" />
         <h1>Countdown to <div id="purpose" class="h1" style="display: inline">Freedom!</div></h1>
         <div id="countdown">
             <div class="unit"><div id="days" class="number">00</div><div class="label">Days</div></div>
@@ -47,7 +48,7 @@
             <div class="unit"><div id="minutes" class="number">00</div><div class="label">Minutes</div></div>
             <div class="unit"><div id="seconds" class="number">00</div><div class="label">Seconds</div></div>
         </div>
-
+        <button onclick="window.history.back()" style="margin-top:2rem; padding:0.5rem 1.5rem; background:#007bff; color:#fff; border:none; border-radius:0.5rem; font-size:1rem; cursor:pointer;">&#8592; Back</button>
         <script>
             // Set background and font color from query params
             (function setColorsFromParams() {
@@ -57,6 +58,15 @@
                 if (bg) document.body.style.background = bg;
                 if (fc) document.body.style.color = fc;
             })();
+
+            // Show selected image above the countdown if present
+            const params = new URLSearchParams(window.location.search);
+            const bgimgurl = params.get('bgimgurl');
+            if (bgimgurl) {
+                const img = document.getElementById('bgimg-display');
+                img.src = bgimgurl;
+                img.style.display = 'block';
+            }
 
             const DEFAULT_END_TIME = "2026-08-01";
 
