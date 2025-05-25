@@ -25,6 +25,8 @@
                 gap: 1rem;
                 font-size: 2.5rem;
                 font-weight: bold;
+                flex-wrap: wrap;
+                justify-content: center;
             }
             .unit {
                 text-align: center;
@@ -42,33 +44,29 @@
     <body>
         <img id="bgimg-display" style="display:none; max-width:480px; width:100%; max-height:320px; height:auto; max-height:240px; border-radius:0.75rem; margin-bottom:1.5rem;" alt="Selected" />
         <h1>Countdown to <div id="purpose" class="h1" style="display: inline">Freedom!</div></h1>
-        <div id="countdown">
-            <div class="unit"><div id="days" class="number">00</div><div class="label">Days</div></div>
-            <div class="unit"><div id="hours" class="number">00</div><div class="label">Hours</div></div>
-            <div class="unit"><div id="minutes" class="number">00</div><div class="label">Minutes</div></div>
-            <div class="unit"><div id="seconds" class="number">00</div><div class="label">Seconds</div></div>
-        </div>
+        <div id="countdown"></div>
         <button onclick="window.history.back()" style="margin-top:2rem; padding:0.5rem 1.5rem; background:#007bff; color:#fff; border:none; border-radius:0.5rem; font-size:1rem; cursor:pointer;">&#8592; Back</button>
         <script>
-            // Set background and font color from query params
-            (function setColorsFromParams() {
+            const DEFAULT_END_TIME = "2026-08-01";
+
+            function getBGColor() {
                 const params = new URLSearchParams(window.location.search);
                 const bg = params.get('bg');
-                const fc = params.get('fc');
-                if (bg) document.body.style.background = bg;
-                if (fc) document.body.style.color = fc;
-            })();
-
-            // Show selected image above the countdown if present
-            const params = new URLSearchParams(window.location.search);
-            const bgimgurl = params.get('bgimgurl');
-            if (bgimgurl) {
-                const img = document.getElementById('bgimg-display');
-                img.src = bgimgurl;
-                img.style.display = 'block';
+                return !bg ? null : bg;
             }
 
-            const DEFAULT_END_TIME = "2026-08-01";
+            function getFColor() {
+                const params = new URLSearchParams(window.location.search);
+                const fc = params.get('fc');
+                return !fc ? null : fc;
+            }
+   
+            function getImgURL() {
+                const params = new URLSearchParams(window.location.search);
+                const bgImgURL = params.get('bgimgurl');
+                return (!bgImgURL) ? null : bgImgURL;
+                return bgImgURL;
+            }
 
             function getPurpose() {
                 const params = new URLSearchParams(window.location.search);
@@ -92,12 +90,16 @@
                     return new Date(asNumber);
                 }
 
+                const hasHMS = endParam.indexOf("T") != -1;
+                const hasZ = endParam.indexOf("Z") != -1;
+                let isUTC = !hasHMS || hasZ;
+
                 // Convert date string to local time
                 const inputDate = new Date(endParam);
                 if (isNaN(inputDate.getTime())) return null;
 
                 // Adjust to local time if input was interpreted as UTC
-                const localOffset = inputDate.getTimezoneOffset() * 60000;
+                const localOffset = isUTC ? inputDate.getTimezoneOffset() * 60000 : 0;
                 return new Date(inputDate.getTime() + localOffset);
             }
 
@@ -105,32 +107,82 @@
             if (purpose != null) {
                 document.getElementById('purpose').textContent = purpose;
             }
+
+            const bgImgURL = getImgURL();
+            if (bgImgURL != null) {
+                // Show selected image above the countdown if present
+                const img = document.getElementById('bgimg-display');
+                img.src = bgImgURL;
+                img.style.display = 'block';
+            }
             
+            // Set background and font color from query params
+            (function setColorsFromParams() {
+                const bg = getBGColor();
+                const fc = getFColor();
+                if (bg != null) document.body.style.background = bg;
+                if (fc != null) document.body.style.color = fc;
+            })();
+
             const endTime = getEndTime();
+            const countdownEl = document.getElementById('countdown');
+
             if (endTime == null) {
                 document.getElementById('countdown').textContent = 'No valid "end" parameter provided.';
             } else {
                 function updateCountdown() {
                     const now = new Date();
-                    const diff = endTime - now;
-                    if (diff <= 0) {
-                        document.getElementById('countdown').textContent = 'Countdown complete!';
+
+                    if (endTime <= now) {
+                        countdownEl.textContent = 'Countdown complete!';
                         clearInterval(interval);
                         return;
                     }
 
-                    const secondsTotal = Math.floor(diff / 1000);
-                    const days = Math.floor(secondsTotal / 86400);
-                    const hours = Math.floor((secondsTotal % 86400) / 3600);
-                    const minutes = Math.floor((secondsTotal % 3600) / 60);
-                    const seconds = secondsTotal % 60;
+                    let years = endTime.getFullYear() - now.getFullYear();
+                    let months = endTime.getMonth() - now.getMonth();
+                    let days = endTime.getDate() - now.getDate();
+                    let hours = endTime.getHours() - now.getHours();
+                    let minutes = endTime.getMinutes() - now.getMinutes();
+                    let seconds = endTime.getSeconds() - now.getSeconds();
 
-                    document.getElementById('days').textContent = String(days).padStart(2, '0');
-                    document.getElementById('hours').textContent = String(hours).padStart(2, '0');
-                    document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
-                    document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+                    if (seconds < 0) {
+                        seconds += 60;
+                        minutes--;
+                    }
+                    if (minutes < 0) {
+                        minutes += 60;
+                        hours--;
+                    }
+                    if (hours < 0) {
+                        hours += 24;
+                        days--;
+                    }
+                    if (days < 0) {
+                        const prevMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                        days += prevMonth.getDate();
+                        months--;
+                    }
+                    if (months < 0) {
+                        months += 12;
+                        years--;
+                    }
+
+                    countdownEl.innerHTML = '';
+
+                    if (years > 0) {
+                        countdownEl.innerHTML += `<div class="unit"><div class="number">${String(years).padStart(2, '0')}</div><div class="label">Years</div></div>`;
+                    }
+                    if (months > 0 || years > 0) {
+                        countdownEl.innerHTML += `<div class="unit"><div class="number">${String(months).padStart(2, '0')}</div><div class="label">Months</div></div>`;
+                    }
+                    if (days > 0 || months > 0 || years > 0) {
+                        countdownEl.innerHTML += `<div class="unit"><div class="number">${String(days).padStart(2, '0')}</div><div class="label">Days</div></div>`;
+                    }
+                    countdownEl.innerHTML += `<div class="unit"><div class="number">${String(hours).padStart(2, '0')}</div><div class="label">Hours</div></div>`;
+                    countdownEl.innerHTML += `<div class="unit"><div class="number">${String(minutes).padStart(2, '0')}</div><div class="label">Minutes</div></div>`;
+                    countdownEl.innerHTML += `<div class="unit"><div class="number">${String(seconds).padStart(2, '0')}</div><div class="label">Seconds</div></div>`;
                 }
-
                 updateCountdown();
                 const interval = setInterval(updateCountdown, 1000);
             }
