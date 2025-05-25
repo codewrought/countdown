@@ -145,10 +145,10 @@
                 } else {
                     years = end.getFullYear() - start.getFullYear();
                     months = end.getMonth() - start.getMonth();
-                    days = endTime.getDate() - start.getDate();
-                    hours = endTime.getHours() - start.getHours();
-                    minutes = endTime.getMinutes() - start.getMinutes();
-                    seconds = endTime.getSeconds() - start.getSeconds();
+                    days = end.getDate() - start.getDate();
+                    hours = end.getHours() - start.getHours();
+                    minutes = end.getMinutes() - start.getMinutes();
+                    seconds = end.getSeconds() - start.getSeconds();
                     if (seconds < 0) {
                         seconds += 60;
                         minutes--;
