@@ -65,15 +65,18 @@
                 const params = new URLSearchParams(window.location.search);
                 const bgImgURL = params.get('bgimgurl');
                 return (!bgImgURL) ? null : bgImgURL;
-                return bgImgURL;
             }
 
             function getPurpose() {
                 const params = new URLSearchParams(window.location.search);
-                const purposeParam = params.get('p');
-                if (!purposeParam) return null;
+                const purpose = params.get('p');
+                return (!purpose) ? null : purpose;
+            }
 
-                return purposeParam;
+            function getUseBusinessDays() {
+                const params = new URLSearchParams(window.location.search);
+                const useBusinessDays = params.get('b');
+                return !useBusinessDays ? false : (useBusinessDays == 1);
             }
 
             // Parse end time from query string (e.g., ?end=2025-12-31T23:59:59Z or ?end=1735689599000)
@@ -115,6 +118,66 @@
                 img.src = bgImgURL;
                 img.style.display = 'block';
             }
+
+            function isBusinessDay(date) {
+                const day = date.getDay();
+                return day !== 0 && day !== 6;
+            }
+
+            function calcTimeDiff(start, end, useBusinessDays) {
+                let years = 0, months = 0, days = 0;
+
+                if (useBusinessDays) {
+                    let businessDays = 0;
+                    let current = new Date(start);
+                    while (current < end) {
+                        if (isBusinessDay(current)) {
+                            businessDays++;
+                        }
+                        current.setDate(current.getDate() + 1);
+                    }
+                    days = businessDays;
+                } else {
+                    years = end.getFullYear() - start.getFullYear();
+                    months = end.getMonth() - start.getMonth();
+                    days = end.getDate() - start.getDate();
+                }
+                
+                let hours = end.getHours() - start.getHours();
+                let minutes = end.getMinutes() - start.getMinutes();
+                let seconds = end.getSeconds() - start.getSeconds();
+
+                if (seconds < 0) {
+                    seconds += 60;
+                    minutes--;
+                }
+                if (minutes < 0) {
+                    minutes += 60;
+                    hours--;
+                }
+                if (hours < 0) {
+                    hours += 24;
+                    days--;
+                }
+                if (days < 0) {
+                    const prevMonth = new Date(start.getFullYear(), start.getMonth() + 1, 0);
+                    days += prevMonth.getDate();
+                    months--;
+                }
+                if (months < 0) {
+                    months += 12;
+                    years--;
+                }
+
+                return {
+                    years,
+                    months,
+                    days,
+                    hours,
+                    minutes,
+                    seconds
+                };
+            }
             
             // Set background and font color from query params
             (function setColorsFromParams() {
@@ -124,64 +187,35 @@
                 if (fc != null) document.body.style.color = fc;
             })();
 
-            const endTime = getEndTime();
+            const end = getEndTime();
             const countdownEl = document.getElementById('countdown');
 
-            if (endTime == null) {
+            if (end == null) {
                 document.getElementById('countdown').textContent = 'No valid "end" parameter provided.';
             } else {
                 function updateCountdown() {
                     const now = new Date();
-
-                    if (endTime <= now) {
+                    if (end <= now) {
                         countdownEl.textContent = 'Countdown complete!';
                         clearInterval(interval);
                         return;
                     }
 
-                    let years = endTime.getFullYear() - now.getFullYear();
-                    let months = endTime.getMonth() - now.getMonth();
-                    let days = endTime.getDate() - now.getDate();
-                    let hours = endTime.getHours() - now.getHours();
-                    let minutes = endTime.getMinutes() - now.getMinutes();
-                    let seconds = endTime.getSeconds() - now.getSeconds();
-
-                    if (seconds < 0) {
-                        seconds += 60;
-                        minutes--;
-                    }
-                    if (minutes < 0) {
-                        minutes += 60;
-                        hours--;
-                    }
-                    if (hours < 0) {
-                        hours += 24;
-                        days--;
-                    }
-                    if (days < 0) {
-                        const prevMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-                        days += prevMonth.getDate();
-                        months--;
-                    }
-                    if (months < 0) {
-                        months += 12;
-                        years--;
-                    }
-
+                    const diff = calcTimeDiff(now, end, getUseBusinessDays());
                     countdownEl.innerHTML = '';
 
-                    if (years > 0) {
-                        countdownEl.innerHTML += `<div class="unit"><div class="number">${String(years).padStart(2, '0')}</div><div class="label">Years</div></div>`;
+                    if (diff.years > 0) {
+                        countdownEl.innerHTML += `<div class="unit"><div class="number">${String(diff.years).padStart(2, '0')}</div><div class="label">Years</div></div>`;
                     }
-                    if (months > 0 || years > 0) {
-                        countdownEl.innerHTML += `<div class="unit"><div class="number">${String(months).padStart(2, '0')}</div><div class="label">Months</div></div>`;
+                    if (diff.months > 0 || diff.years > 0) {
+                        countdownEl.innerHTML += `<div class="unit"><div class="number">${String(diff.months).padStart(2, '0')}</div><div class="label">Months</div></div>`;
                     }
-                    if (days > 0 || months > 0 || years > 0) {
-                        countdownEl.innerHTML += `<div class="unit"><div class="number">${String(days).padStart(2, '0')}</div><div class="label">Days</div></div>`;
+                    if (diff.days > 0 || diff.months > 0 || diff.years > 0) {
+                        countdownEl.innerHTML += `<div class="unit"><div class="number">${String(diff.days).padStart(2, '0')}</div><div class="label">${getUseBusinessDays()?'Business ':''}Days</div></div>`;
                     }
-                    countdownEl.innerHTML += `<div class="unit"><div class="number">${String(hours).padStart(2, '0')}</div><div class="label">Hours</div></div>`;
-                    countdownEl.innerHTML += `<div class="unit"><div class="number">${String(minutes).padStart(2, '0')}</div><div class="label">Minutes</div></div>`;
-                    countdownEl.innerHTML += `<div class="unit"><div class="number">${String(seconds).padStart(2, '0')}</div><div class="label">Seconds</div></div>`;
+                    countdownEl.innerHTML += `<div class="unit"><div class="number">${String(diff.hours).padStart(2, '0')}</div><div class="label">Hours</div></div>`;
+                    countdownEl.innerHTML += `<div class="unit"><div class="number">${String(diff.minutes).padStart(2, '0')}</div><div class="label">Minutes</div></div>`;
+                    countdownEl.innerHTML += `<div class="unit"><div class="number">${String(diff.seconds).padStart(2, '0')}</div><div class="label">Seconds</div></div>`;
                 }
                 updateCountdown();
                 const interval = setInterval(updateCountdown, 1000);
