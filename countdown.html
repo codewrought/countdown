@@ -125,7 +125,8 @@
             }
 
             function calcTimeDiff(start, end, useBusinessDays) {
-                let years = 0, months = 0, days = 0;
+                let years = 0, months = 0, days = 0, hours = 0, minutes = 0, seconds = 0;
+                const remaining = new Date(end - start);
 
                 if (useBusinessDays) {
                     let businessDays = 0;
@@ -137,38 +138,40 @@
                         current.setDate(current.getDate() + 1);
                     }
                     days = businessDays;
+                    hours = remaining.getUTCHours();
+                    minutes = remaining.getUTCMinutes();
+                    seconds = remaining.getUTCSeconds();
+
                 } else {
                     years = end.getFullYear() - start.getFullYear();
                     months = end.getMonth() - start.getMonth();
-                    days = end.getDate() - start.getDate();
-                }
+                    days = endTime.getDate() - start.getDate();
+                    hours = endTime.getHours() - start.getHours();
+                    minutes = endTime.getMinutes() - start.getMinutes();
+                    seconds = endTime.getSeconds() - start.getSeconds();
+                    if (seconds < 0) {
+                        seconds += 60;
+                        minutes--;
+                    }
+                    if (minutes < 0) {
+                        minutes += 60;
+                        hours--;
+                    }
+                    if (hours < 0) {
+                        hours += 24;
+                        days--;
+                    }
+                    if (days < 0) {
+                        const prevMonth = new Date(start.getFullYear(), start.getMonth() + 1, 0);
+                        days += prevMonth.getDate();
+                        months--;
+                    }
+                    if (months < 0) {
+                        months += 12;
+                        years--;
+                    }
+               }
                 
-                let hours = end.getHours() - start.getHours();
-                let minutes = end.getMinutes() - start.getMinutes();
-                let seconds = end.getSeconds() - start.getSeconds();
-
-                if (seconds < 0) {
-                    seconds += 60;
-                    minutes--;
-                }
-                if (minutes < 0) {
-                    minutes += 60;
-                    hours--;
-                }
-                if (hours < 0) {
-                    hours += 24;
-                    days--;
-                }
-                if (days < 0) {
-                    const prevMonth = new Date(start.getFullYear(), start.getMonth() + 1, 0);
-                    days += prevMonth.getDate();
-                    months--;
-                }
-                if (months < 0) {
-                    months += 12;
-                    years--;
-                }
-
                 return {
                     years,
                     months,
