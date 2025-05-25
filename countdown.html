@@ -75,7 +75,7 @@
 
             function getUseBusinessDays() {
                 const params = new URLSearchParams(window.location.search);
-                const useBusinessDays = params.get('b');
+                const useBusinessDays = params.get('usebdays');
                 return !useBusinessDays ? false : (useBusinessDays == 1);
             }
 

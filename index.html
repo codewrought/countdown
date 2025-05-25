@@ -114,7 +114,8 @@
                 { id: 'message', type: 'value' },
                 { id: 'bgcolor', type: 'value' },
                 { id: 'fontcolor', type: 'value' },
-                { id: 'bgimageurl', type: 'value' }
+                { id: 'bgimageurl', type: 'value' },
+                { id: 'usebdays', type: 'checked' }
             ];
             fields.forEach(field => {
                 const val = getCookie(field.id);
@@ -133,7 +134,7 @@
         });
 
         // Save input values to cookies on change
-        ['date', 'time', 'message', 'bgcolor', 'fontcolor', 'bgimageurl'].forEach(id => {
+        ['date', 'time', 'message', 'bgcolor', 'fontcolor', 'bgimageurl','usebdays'].forEach(id => {
             document.getElementById(id).addEventListener('change', function (e) {
                 setCookie(id, e.target.value);
                 if (id === 'bgimageurl') {
@@ -187,9 +188,9 @@
             }
             if (usebdays) {
                 if (usebdays.checked) {
-                    url += `&b=1`;
+                    url += `&usebdays=1`;
                 } else {
-                    url += `&b=0`;
+                    url += `&usebdays=0`;
                 }
             }
 
